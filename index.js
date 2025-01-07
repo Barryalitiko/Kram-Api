@@ -1,6 +1,5 @@
 const logger = require("./utils/logger"); // Importar el logger personalizado
 const express = require("express");
-// ... otros imports
 
 async function start() {
   try {

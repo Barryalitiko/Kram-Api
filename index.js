@@ -16,7 +16,7 @@ async function start() {
     });
 
     app.listen(PORT, () => {
-      logger.info(Servidor corriendo en http://localhost:${PORT});
+      logger.info(`Servidor corriendo en http://localhost:${PORT}`);
     });
   } catch (error) {
     logger.error(Error al iniciar el servidor: ${error.message});

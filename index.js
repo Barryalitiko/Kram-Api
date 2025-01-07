@@ -19,7 +19,7 @@ async function start() {
       logger.info(`Servidor corriendo en http://localhost:${PORT}`);
     });
   } catch (error) {
-    logger.error(Error al iniciar el servidor: ${error.message});
+    logger.error(`Error al iniciar el servidor: ${error.message}`);
   }
 }
 

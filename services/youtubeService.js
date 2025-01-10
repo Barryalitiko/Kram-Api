@@ -16,11 +16,18 @@ function validateYouTubeURL(url) {
  */
 async function getYouTubeVideoInfo(url) {
   if (!validateYouTubeURL(url)) {
-    throw new Error("URL inválida");
+    throw new Error("URL inválida o no es un video de YouTube");
   }
 
-  const info = await ytdl.getInfo(url);
-  return info;
+  try {
+    console.log(`Intentando obtener información del video: ${url}`);
+    const info = await ytdl.getInfo(url);
+    console.log("Información del video obtenida con éxito:", info.videoDetails.title);
+    return info;
+  } catch (error) {
+    console.error("Error al obtener información del video:", error.message);
+    throw new Error("Error al procesar el video. Verifica si la URL es válida.");
+  }
 }
 
 /**
@@ -29,11 +36,17 @@ async function getYouTubeVideoInfo(url) {
  * @returns {object}
  */
 function selectBestVideoFormat(formats) {
-  const videoFormat = ytdl.chooseFormat(formats, { quality: "highestvideo" });
-  if (!videoFormat) {
-    throw new Error("No se encontró un formato de video válido");
+  try {
+    const videoFormat = ytdl.chooseFormat(formats, { quality: "highestvideo" });
+    if (!videoFormat) {
+      throw new Error("No se encontró un formato de video válido");
+    }
+    console.log("Formato de video seleccionado:", videoFormat.mimeType);
+    return videoFormat;
+  } catch (error) {
+    console.error("Error al seleccionar el formato de video:", error.message);
+    throw error;
   }
-  return videoFormat;
 }
 
 module.exports = {

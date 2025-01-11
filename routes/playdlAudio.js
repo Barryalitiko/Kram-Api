@@ -24,25 +24,22 @@ router.get("/", async (req, res) => {
     const fileName = `${sanitizedTitle}.mp3`;
     const filePath = path.join(__dirname, "../public", fileName);
 
-    // Verificar si ya existe el archivo
+    // Verificar si el archivo ya existe
     if (fs.existsSync(filePath)) {
       console.log("El archivo ya existe. Enviando enlace existente...");
-      return res.json({ 
+      return res.json({
         message: "Archivo ya disponible.",
-        file: `/public/${fileName}` 
+        file: `/public/${fileName}`,
       });
     }
 
-    // Descargar directamente el audio
-    console.log("Descargando audio...");
-    const audioStream = await playdl.download(url, {
-      quality: 2, // Mejor calidad disponible
-      filter: "audioonly", // Solo audio
-    });
+    // Obtener el flujo de audio
+    console.log("Obteniendo flujo de audio...");
+    const stream = await playdl.stream(url, { quality: 2 }); // Mejor calidad disponible
 
-    // Guardar el archivo descargado
+    // Crear un archivo en la carpeta public
     const writeStream = fs.createWriteStream(filePath);
-    audioStream.pipe(writeStream);
+    stream.stream.pipe(writeStream);
 
     writeStream.on("finish", () => {
       console.log("Archivo descargado correctamente.");

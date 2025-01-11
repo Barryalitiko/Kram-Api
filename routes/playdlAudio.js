@@ -20,29 +20,37 @@ router.get("/", async (req, res) => {
 
     // Obtener información básica del video
     const info = await playdl.video_basic_info(url);
-    console.log("Información del video obtenida:", info.video_details.title);
-
-    // Obtener flujo de audio
-    const stream = await playdl.stream(url, { quality: 2 });
-
-    // Ruta del archivo
-    const fileName = `${info.video_details.title}.mp3`.replace(/[<>:"/\\|?*]+/g, ""); // Limpieza del nombre
+    const sanitizedTitle = info.video_details.title.replace(/[<>:"/\\|?*]+/g, "");
+    const fileName = `${sanitizedTitle}.mp3`;
     const filePath = path.join(__dirname, "../public", fileName);
 
-    console.log(`Guardando audio en: ${filePath}`);
+    // Verificar si ya existe el archivo
+    if (fs.existsSync(filePath)) {
+      console.log("El archivo ya existe. Enviando enlace existente...");
+      return res.json({ 
+        message: "Archivo ya disponible.",
+        file: `/public/${fileName}` 
+      });
+    }
 
-    // Escribir el flujo en un archivo
+    // Obtener flujo de audio y guardar en un archivo
+    console.log("Descargando flujo de audio...");
+    const stream = await playdl.stream(url, { quality: 2 });
     const writeStream = fs.createWriteStream(filePath);
+
     stream.stream.pipe(writeStream);
 
-    // Esperar a que termine de escribir
+    // Esperar a que se complete la descarga
     writeStream.on("finish", () => {
-      console.log("Archivo guardado con éxito.");
-      res.json({ message: "Audio descargado con éxito.", file: `/public/${fileName}` });
+      console.log("Archivo descargado con éxito.");
+      res.json({
+        message: "Audio descargado con éxito.",
+        file: `/public/${fileName}`,
+      });
     });
 
     writeStream.on("error", (err) => {
-      console.error("Error al escribir el archivo:", err.message);
+      console.error("Error al guardar el archivo:", err.message);
       res.status(500).json({ error: "Error al guardar el archivo." });
     });
   } catch (err) {

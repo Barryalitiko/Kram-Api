@@ -25,7 +25,9 @@ router.get("/", async (req, res) => {
     // Obtener flujo de audio
     console.log("Obteniendo flujo de audio...");
     const stream = await playdl.stream(url, { quality: 2 });
-    console.log("Flujo de audio obtenido, enviando respuesta al cliente...");
+
+    // Aquí imprimimos el enlace de descarga en el console.log
+    console.log("Enlace de descarga del audio: ", stream.url);
 
     // Enviar respuesta al cliente
     res.header("Content-Disposition", 'attachment; filename="audio.mp3"');

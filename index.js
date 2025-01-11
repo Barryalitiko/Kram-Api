@@ -19,8 +19,8 @@ async function start() {
 
     // Ruta principal
     app.get("/", (req, res) => {
-      logger.info("Ruta principal '/' visitada");
-      res.json({ message: "Bienvenido a la API" });
+      logger.info("Operacion Marshall");
+      res.json({ message: "Krampus OM bot" });
     });
 
     // Ruta para ver los archivos en la carpeta public

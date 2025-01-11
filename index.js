@@ -1,5 +1,6 @@
-const logger = require("./utils/logger"); // Importar el logger personalizado
 const express = require("express");
+const path = require("path");
+const logger = require("./utils/logger"); // Importar el logger personalizado
 const audioRoutes = require("./routes/audio"); // Ruta de audio
 const musicaRoutes = require("./routes/musica"); // Ruta de música
 const videoRoutes = require("./routes/video"); // Ruta de video
@@ -9,6 +10,9 @@ async function start() {
   try {
     const app = express();
     const PORT = process.env.PORT || 4000;
+
+    // Servir archivos estáticos desde la carpeta 'public'
+    app.use(express.static(path.join(__dirname, 'public')));
 
     app.use(express.json());
 

@@ -1,10 +1,10 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs"); // Para leer los archivos
-const logger = require("./utils/logger");
-const audioRoutes = require("./routes/audio");
-const musicaRoutes = require("./routes/musica");
-const videoRoutes = require("./routes/video");
+const logger = require("./utils/logger"); // Si usas un logger
+const audioRoutes = require("./routes/audio"); 
+const musicaRoutes = require("./routes/musica"); 
+const videoRoutes = require("./routes/video"); 
 const playdlAudioRoutes = require("./routes/playdlAudio");
 
 async function start() {
@@ -30,12 +30,22 @@ async function start() {
         if (err) {
           return res.status(500).send("No se pudieron leer los archivos.");
         }
+
+        // Generamos un listado HTML con los archivos
+        const fileList = files.map(file => {
+          return `<li><a href="/${file}" target="_blank">${file}</a></li>`;
+        }).join('');
+
+        // Enviamos la respuesta con el listado de archivos
         res.send(`
           <html>
+            <head>
+              <title>Archivos en Public</title>
+            </head>
             <body>
-              <h1>Archivos en public:</h1>
+              <h1>Archivos en la carpeta 'public':</h1>
               <ul>
-                ${files.map(file => `<li><a href="/${file}" target="_blank">${file}</a></li>`).join('')}
+                ${fileList}
               </ul>
             </body>
           </html>

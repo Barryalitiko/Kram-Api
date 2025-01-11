@@ -38,18 +38,46 @@ async function start() {
 
         // Enviamos la respuesta con el listado de archivos
         res.send(`
-          <html>
-            <head>
-              <title>Archivos en Public</title>
-            </head>
-            <body>
-              <h1>Archivos en la carpeta 'public':</h1>
-              <ul>
-                ${fileList}
-              </ul>
-            </body>
-          </html>
-        `);
+  <html>
+    <head>
+      <title>Archivos en Public</title>
+      <style>
+        body {
+          font-family: Arial, sans-serif;
+          background-color: #f0f0f0;
+        }
+        h1 {
+          color: #00698f;
+        }
+        ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        li {
+          padding: 10px;
+          border-bottom: 1px solid #ccc;
+        }
+        li:last-child {
+          border-bottom: none;
+        }
+        a {
+          text-decoration: none;
+          color: #00698f;
+        }
+        a:hover {
+          color: #003d5d;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>Archivos en la carpeta 'public':</h1>
+      <ul>
+        ${fileList}
+      </ul>
+    </body>
+  </html>
+`);
       });
     });
 

@@ -31,6 +31,8 @@ router.get("/", async (req, res) => {
       return res.json({
         message: "Archivo ya disponible.",
         file: `/public/${fileName}`,
+        title: sanitizedTitle,
+        duration: info.video_details.duration_in_sec,
       });
     }
 
@@ -52,6 +54,8 @@ router.get("/", async (req, res) => {
         res.json({
           message: "Audio descargado y convertido con éxito.",
           file: `/public/${fileName}`,
+          title: sanitizedTitle,
+          duration: info.video_details.duration_in_sec, // Duración del video en segundos
         });
       })
       .save(filePath); // Guardar el archivo convertido en la carpeta public

@@ -2,6 +2,7 @@ const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const playdl = require("play-dl");
+const ffmpeg = require("fluent-ffmpeg");
 const router = express.Router();
 
 router.get("/", async (req, res) => {
@@ -33,26 +34,27 @@ router.get("/", async (req, res) => {
       });
     }
 
-    // Obtener el flujo de audio
+    // Obtener el flujo de audio con play-dl
     console.log("Obteniendo flujo de audio...");
-    const stream = await playdl.stream(url, { quality: 2 }); // Mejor calidad disponible
+    const stream = await playdl.stream(url, { quality: 2 });
 
-    // Crear un archivo en la carpeta public
-    const writeStream = fs.createWriteStream(filePath);
-    stream.stream.pipe(writeStream);
-
-    writeStream.on("finish", () => {
-      console.log("Archivo descargado correctamente.");
-      res.json({
-        message: "Audio descargado con éxito.",
-        file: `/public/${fileName}`,
-      });
-    });
-
-    writeStream.on("error", (err) => {
-      console.error("Error al guardar el archivo:", err.message);
-      res.status(500).json({ error: "Error al guardar el archivo." });
-    });
+    // Convertir el flujo a MP3 utilizando FFmpeg
+    console.log("Convirtiendo flujo a MP3...");
+    const ffmpegStream = ffmpeg(stream.stream)
+      .audioCodec("libmp3lame") // Codec de audio para MP3
+      .format("mp3") // Formato de salida
+      .on("error", (err) => {
+        console.error("Error durante la conversión:", err.message);
+        res.status(500).json({ error: "Error al convertir el audio." });
+      })
+      .on("end", () => {
+        console.log("Archivo MP3 creado exitosamente.");
+        res.json({
+          message: "Audio descargado y convertido con éxito.",
+          file: `/public/${fileName}`,
+        });
+      })
+      .save(filePath); // Guardar el archivo convertido en la carpeta public
   } catch (err) {
     console.error("Error al procesar el audio con play-dl:", err.message);
     res.status(500).json({ error: "Error al obtener el audio" });

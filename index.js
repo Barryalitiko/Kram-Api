@@ -1,7 +1,6 @@
 const logger = require("./utils/logger"); // Importar el logger personalizado
 const express = require("express");
 const audioRoutes = require("./routes/audio"); // Ruta de audio
-const musicaRoutes = require("./routes/musica"); // Ruta de música
 const videoRoutes = require("./routes/video"); // Ruta de video
 
 async function start() {

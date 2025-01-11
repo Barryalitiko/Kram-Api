@@ -1,10 +1,9 @@
-const express = require("express");
-const playdl = require("play-dl");
 const fs = require("fs");
 const path = require("path");
+const express = require("express");
+const playdl = require("play-dl");
 const router = express.Router();
 
-// Ruta para descargar solo audio utilizando play-dl
 router.get("/", async (req, res) => {
   const { url } = req.query;
 
@@ -20,33 +19,31 @@ router.get("/", async (req, res) => {
     console.log(`Procesando audio con play-dl para la URL: ${url}`);
 
     // Obtener información básica del video
-    console.log("Obteniendo información básica del video...");
     const info = await playdl.video_basic_info(url);
-    const title = info.video_details.title.replace(/[<>:"/\\|?*]+/g, ""); // Limpiar caracteres inválidos para el nombre del archivo
-    console.log("Información del video obtenida:", title);
+    console.log("Información del video obtenida:", info.video_details.title);
 
     // Obtener flujo de audio
-    console.log("Obteniendo flujo de audio...");
     const stream = await playdl.stream(url, { quality: 2 });
 
-    // Ruta para guardar el archivo temporalmente
-    const filePath = path.join(__dirname, "..", "public", `${title}.mp3`);
+    // Ruta del archivo
+    const fileName = `${info.video_details.title}.mp3`.replace(/[<>:"/\\|?*]+/g, ""); // Limpieza del nombre
+    const filePath = path.join(__dirname, "../public", fileName);
 
-    // Guardar el flujo en el archivo
+    console.log(`Guardando audio en: ${filePath}`);
+
+    // Escribir el flujo en un archivo
     const writeStream = fs.createWriteStream(filePath);
     stream.stream.pipe(writeStream);
 
-    // Esperar hasta que el archivo esté completamente guardado
+    // Esperar a que termine de escribir
     writeStream.on("finish", () => {
-      console.log(`Archivo guardado en: ${filePath}`);
-      const downloadUrl = `${req.protocol}://${req.get("host")}/public/${title}.mp3`;
-      console.log(`Enlace de descarga generado: ${downloadUrl}`);
-      res.json({ downloadUrl }); // Enviar el enlace de descarga al cliente
+      console.log("Archivo guardado con éxito.");
+      res.json({ message: "Audio descargado con éxito.", file: `/public/${fileName}` });
     });
 
     writeStream.on("error", (err) => {
-      console.error("Error al guardar el archivo:", err.message);
-      res.status(500).json({ error: "Error al guardar el archivo de audio" });
+      console.error("Error al escribir el archivo:", err.message);
+      res.status(500).json({ error: "Error al guardar el archivo." });
     });
   } catch (err) {
     console.error("Error al procesar el audio con play-dl:", err.message);

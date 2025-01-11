@@ -4,7 +4,7 @@ const fs = require("fs"); // Para leer los archivos
 const logger = require("./utils/logger"); // Si usas un logger
 const audioRoutes = require("./routes/audio"); 
 const musicaRoutes = require("./routes/musica"); 
-const videoRoutes = require("./routes/video"); 
+const videoRoutes = require("./routes/video"); // Aquí importamos la ruta para videos
 const playdlAudioRoutes = require("./routes/playdlAudio");
 
 async function start() {
@@ -84,7 +84,7 @@ async function start() {
     // Usar rutas de audio, música, video y Play-DL
     app.use("/audio", audioRoutes);
     app.use("/musica", musicaRoutes);
-    app.use("/video", videoRoutes);
+    app.use("/video", videoRoutes); // Aquí usamos la ruta para videos
     app.use("/playdl-audio", playdlAudioRoutes);
 
     app.listen(PORT, () => {

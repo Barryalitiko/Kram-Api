@@ -27,28 +27,29 @@ router.get("/", async (req, res) => {
     // Verificar si ya existe el archivo
     if (fs.existsSync(filePath)) {
       console.log("El archivo ya existe. Enviando enlace existente...");
-      return res.json({ message: "Archivo ya disponible.", file: `/public/${fileName}` });
+      return res.json({ 
+        message: "Archivo ya disponible.",
+        file: `/public/${fileName}` 
+      });
     }
 
-    // Obtener flujo de audio y guardar en un archivo
-    console.log("Descargando flujo de audio...");
-    const stream = await playdl.stream(url, { quality: 2 });
-    const writeStream = fs.createWriteStream(filePath);
-
-    // Agregar evento progress para verificar el progreso de la descarga
-    let receivedBytes = 0;
-    stream.stream.on("data", (chunk) => {
-      receivedBytes += chunk.length;
-      const percentage = (receivedBytes / stream.stream.headers["content-length"]) * 100;
-      console.log(`Descargando... ${percentage.toFixed(2)}%`);
+    // Descargar directamente el audio
+    console.log("Descargando audio...");
+    const audioStream = await playdl.download(url, {
+      quality: 2, // Mejor calidad disponible
+      filter: "audioonly", // Solo audio
     });
 
-    stream.stream.pipe(writeStream);
+    // Guardar el archivo descargado
+    const writeStream = fs.createWriteStream(filePath);
+    audioStream.pipe(writeStream);
 
-    // Esperar a que se complete la descarga
     writeStream.on("finish", () => {
-      console.log("Archivo descargado con éxito.");
-      res.json({ message: "Audio descargado con éxito.", file: `/public/${fileName}` });
+      console.log("Archivo descargado correctamente.");
+      res.json({
+        message: "Audio descargado con éxito.",
+        file: `/public/${fileName}`,
+      });
     });
 
     writeStream.on("error", (err) => {

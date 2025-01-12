@@ -2,7 +2,6 @@ const fs = require("fs");
 const path = require("path");
 const express = require("express");
 const playdl = require("play-dl");
-const ffmpeg = require("fluent-ffmpeg");
 const router = express.Router();
 
 router.get("/", async (req, res) => {
@@ -30,9 +29,7 @@ router.get("/", async (req, res) => {
       console.log("El archivo ya existe. Enviando enlace existente...");
       return res.json({
         message: "Archivo ya disponible.",
-        file: `/public/${fileName}`,
-        title: sanitizedTitle,
-        duration: info.video_details.duration_in_sec,
+        downloadUrl: `/public/${fileName}`, // Enlace público
       });
     }
 
@@ -40,28 +37,27 @@ router.get("/", async (req, res) => {
     console.log("Obteniendo flujo de audio...");
     const stream = await playdl.stream(url, { quality: 2 });
 
-    // Convertir el flujo a MP3 utilizando FFmpeg
-    console.log("Convirtiendo flujo a MP3...");
-    const ffmpegStream = ffmpeg(stream.stream)
-      .audioCodec("libmp3lame") // Codec de audio para MP3
-      .format("mp3") // Formato de salida
-      .on("error", (err) => {
-        console.error("Error durante la conversión:", err.message);
-        res.status(500).json({ error: "Error al convertir el audio." });
-      })
-      .on("end", () => {
-        console.log("Archivo MP3 creado exitosamente.");
-        res.json({
-          message: "Audio descargado y convertido con éxito.",
-          file: `/public/${fileName}`,
-          title: sanitizedTitle,
-          duration: info.video_details.duration_in_sec, // Duración del video en segundos
-        });
-      })
-      .save(filePath); // Guardar el archivo convertido en la carpeta public
+    // Crear un archivo de escritura en la carpeta public
+    console.log("Creando archivo MP3...");
+    const writeStream = fs.createWriteStream(filePath);
+    stream.stream.pipe(writeStream);
+
+    // Esperar a que termine la escritura
+    writeStream.on("finish", () => {
+      console.log("Archivo MP3 creado exitosamente.");
+      res.json({
+        message: "Audio descargado y almacenado con éxito.",
+        downloadUrl: `/public/${fileName}`, // Enlace público
+      });
+    });
+
+    writeStream.on("error", (err) => {
+      console.error("Error durante la escritura del archivo:", err.message);
+      res.status(500).json({ error: "Error al guardar el archivo." });
+    });
   } catch (err) {
     console.error("Error al procesar el audio con play-dl:", err.message);
-    res.status(500).json({ error: "Error al obtener el audio" });
+    res.status(500).json({ error: "Error al obtener el audio." });
   }
 });
 

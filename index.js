@@ -1,10 +1,11 @@
 const express = require("express");
 const path = require("path");
 const fs = require("fs"); // Para leer los archivos
+const { exec } = require("child_process"); // Para ejecutar comandos de terminal
 const logger = require("./utils/logger"); // Si usas un logger
-const audioRoutes = require("./routes/audio"); 
-const musicaRoutes = require("./routes/musica"); 
-const videoRoutes = require("./routes/video"); // Aquí importamos la ruta para videos
+const audioRoutes = require("./routes/audio");
+const musicaRoutes = require("./routes/musica");
+const videoRoutes = require("./routes/video");
 const playdlAudioRoutes = require("./routes/playdlAudio");
 
 async function start() {
@@ -13,7 +14,7 @@ async function start() {
     const PORT = process.env.PORT || 4000;
 
     // Servir archivos estáticos desde la carpeta 'public'
-    app.use(express.static(path.join(__dirname, 'public')));
+    app.use(express.static(path.join(__dirname, "public")));
 
     app.use(express.json());
 
@@ -25,16 +26,18 @@ async function start() {
 
     // Ruta para ver los archivos en la carpeta public
     app.get("/public-files", (req, res) => {
-      const publicDir = path.join(__dirname, 'public');
+      const publicDir = path.join(__dirname, "public");
       fs.readdir(publicDir, (err, files) => {
         if (err) {
           return res.status(500).send("No se pudieron leer los archivos.");
         }
 
         // Generamos un listado HTML con los archivos
-        const fileList = files.map(file => {
-          return `<li><a href="/${file}" target="_blank">${file}</a></li>`;
-        }).join('');
+        const fileList = files
+          .map((file) => {
+            return `<li><a href="/${file}" target="_blank">${file}</a></li>`;
+          })
+          .join("");
 
         // Enviamos la respuesta con el listado de archivos
         res.send(`
@@ -81,10 +84,34 @@ async function start() {
       });
     });
 
+    // Prueba de yt-dlp: descargar un video al iniciar el servidor
+    const downloadVideo = async () => {
+      const videoUrl = "https://www.youtube.com/watch?v=YOUR_VIDEO_ID"; // Cambia esto por un ID real
+      const outputFilePath = path.join(__dirname, "public", "video_prueba.mp4");
+
+      logger.info("Iniciando prueba de yt-dlp...");
+      exec(
+        `yt-dlp -f best -o "${outputFilePath}" ${videoUrl}`,
+        (error, stdout, stderr) => {
+          if (error) {
+            logger.error(`Error al descargar el video: ${error.message}`);
+            return;
+          }
+          if (stderr) {
+            logger.warn(`Advertencia durante la descarga: ${stderr}`);
+          }
+          logger.info("Video descargado con éxito y almacenado en 'public'.");
+        }
+      );
+    };
+
+    // Llamamos a la función de prueba
+    await downloadVideo();
+
     // Usar rutas de audio, música, video y Play-DL
     app.use("/audio", audioRoutes);
     app.use("/musica", musicaRoutes);
-    app.use("/video", videoRoutes); // Aquí usamos la ruta para videos
+    app.use("/video", videoRoutes);
     app.use("/playdl-audio", playdlAudioRoutes);
 
     app.listen(PORT, () => {
